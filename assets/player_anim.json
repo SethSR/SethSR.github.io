@@ -1,0 +1,19 @@
+{
+	"idle": {
+		"frame_size": { "x": "24", "y": "24" },
+		"frameset": [
+			"801"
+		],
+		"loop": "true",
+		"speed": "8"
+	},
+	"walk": {
+		"frame_size": { "x": "24", "y": "24" },
+		"frameset": [
+			"801",
+			"802"
+		],
+		"loop": "true",
+		"speed": "8"
+	}
+}

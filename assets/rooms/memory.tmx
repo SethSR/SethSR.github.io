@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="13" height="9" tilewidth="24" tileheight="24" nextobjectid="12">
+ <tileset firstgid="1" name="World Tiles" tilewidth="24" tileheight="24" tilecount="1435">
+  <image source="../oryx_16-bit_sci-fi/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+ </tileset>
+ <tileset firstgid="1436" name="Module Tiles" tilewidth="24" tileheight="48" tilecount="3">
+  <tile id="0">
+   <image width="24" height="48" source="../oryx_16-bit_sci-fi/sliced/world_sliced/images/oryx_16bit_scifi_world_262.png"/>
+  </tile>
+  <tile id="1">
+   <image width="24" height="48" source="../oryx_16-bit_sci-fi/sliced/world_sliced/images/oryx_16bit_scifi_world_263.png"/>
+  </tile>
+  <tile id="2">
+   <image width="24" height="48" source="../oryx_16-bit_sci-fi/sliced/world_sliced/images/oryx_16bit_scifi_world_264.png"/>
+  </tile>
+ </tileset>
+ <layer name="bg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJy7zMDAcJkMbMNIGk2qvlF7yIsXEAYA2vZJlg==
+  </data>
+ </layer>
+ <objectgroup name="fx">
+  <object id="1" name="Entrance Door" type="Door" gid="303" x="288" y="120" width="24" height="24"/>
+  <object id="2" name="Memory 1" type="Info" gid="1437" x="48" y="72" width="24" height="48"/>
+  <object id="3" name="Memory 2" type="Info" gid="1436" x="96" y="72" width="24" height="48"/>
+  <object id="4" name="Memory 3" type="Info" gid="1436" x="144" y="72" width="24" height="48"/>
+  <object id="5" name="Memory 6" type="Info" gid="1436" x="48" y="192" width="24" height="48"/>
+  <object id="6" name="Memory 7" type="Info" gid="1436" x="96" y="192" width="24" height="48"/>
+  <object id="7" name="Memory 8" type="Info" gid="1438" x="144" y="192" width="24" height="48"/>
+  <object id="8" name="Memory 9" type="Info" gid="1438" x="192" y="192" width="24" height="48"/>
+  <object id="9" name="Memory 10" type="Info" gid="1438" x="240" y="192" width="24" height="48"/>
+  <object id="10" name="Memory 4" type="Info" gid="1438" x="192" y="72" width="24" height="48"/>
+  <object id="11" name="Memory 5" type="Info" gid="1438" x="240" y="72" width="24" height="48"/>
+ </objectgroup>
+ <layer name="fg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJx7wMDAwMvIwHAbSPNAaT489EMgfY+BNABWz0i6HlLtuU+GPTC7SAF3ybCHHP+A1D9iwB8f6PRjIA0AmtYVdQ==
+  </data>
+ </layer>
+</map>

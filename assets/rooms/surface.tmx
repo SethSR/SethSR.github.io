@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="13" height="9" tilewidth="24" tileheight="24" nextobjectid="10">
+ <tileset firstgid="1" name="World Tiles" tilewidth="24" tileheight="24" tilecount="1435">
+  <image source="../oryx_16-bit_sci-fi/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+ </tileset>
+ <layer name="bg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJz7zczA8BsL/olF7AcB+Z8E1KDLYzMXlz4Y+xcO92LD2OzC5m5CZuBzDzHm/kBz908c5iLjXwTksZkBYwMA06dz1w==
+  </data>
+ </layer>
+ <objectgroup name="fx">
+  <object id="1" name="Entrance Door" type="Door" gid="93" x="0" y="120" width="24" height="24"/>
+  <object id="7" name="Game Tools" type="Info" gid="1410" x="192" y="144" width="24" height="24"/>
+  <object id="8" name="Space Game" type="Info" gid="1410" x="120" y="192" width="24" height="24"/>
+  <object id="9" name="AI Demo" type="Info" gid="1410" x="144" y="72" width="24" height="24"/>
+ </objectgroup>
+ <layer name="fg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJzjYcANOnCI8+CQ78RjFg8eOVyAlww95ABuIF5Goh4eqB5S9CHr6cKhphNNDldY4wMAThMHXQ==
+  </data>
+ </layer>
+</map>

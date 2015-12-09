@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="13" height="9" tilewidth="24" tileheight="24" nextobjectid="10">
+ <tileset firstgid="1" name="World Tiles" tilewidth="24" tileheight="24" tilecount="1435">
+  <image source="../oryx_16-bit_sci-fi/oryx_16bit_scifi_world_trans.png" width="840" height="984"/>
+ </tileset>
+ <tileset firstgid="1436" name="Planet Tiles" tilewidth="24" tileheight="24" tilecount="6">
+  <tile id="0">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_01.png"/>
+  </tile>
+  <tile id="1">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_02.png"/>
+  </tile>
+  <tile id="2">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_03.png"/>
+  </tile>
+  <tile id="3">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_04.png"/>
+  </tile>
+  <tile id="4">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_05.png"/>
+  </tile>
+  <tile id="5">
+   <image width="24" height="24" source="../oryx_16-bit_sci-fi/sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_06.png"/>
+  </tile>
+ </tileset>
+ <layer name="bg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJxrYWFgaBmkeCkjeZiPiTR6sOshFQMARzQ5PQ==
+  </data>
+ </layer>
+ <objectgroup name="fx">
+  <object id="1" name="Entrance Door" type="Door" gid="513" x="144" y="216" width="24" height="24"/>
+  <object id="2" name="Istation" type="Info" gid="517" x="144" y="96" width="24" height="24"/>
+  <object id="3" name="Brakebill" type="Info" gid="517" x="192" y="96" width="24" height="24"/>
+  <object id="4" name="Balfour Beatty" type="Info" gid="517" x="240" y="96" width="24" height="24"/>
+  <object id="7" name="Unknown" type="Info" gid="517" x="96" y="96" width="24" height="24"/>
+  <object id="9" name="Unfinished" type="Info" gid="1142" x="48" y="96" width="24" height="24"/>
+ </objectgroup>
+ <layer name="fg" width="13" height="9">
+  <data encoding="base64" compression="zlib">
+   eJxjYCAPzGGF0HOh9DwoPR9KL4DSC1nJtAAINjEyMNxnhLDvQekHOOi1QHozEG9gJM2ODYNczxZGiN+Q8TqoOWuwyG0FYgB5sRgM
+  </data>
+ </layer>
+</map>
