@@ -582,6 +582,12 @@ Main.prototype = $extend(luxe_Game.prototype,{
 	}
 	,__class__: Main
 });
+var Room = function() { };
+$hxClasses["Room"] = Room;
+Room.__name__ = ["Room"];
+Room.prototype = {
+	__class__: Room
+};
 var RectUtils = function() { };
 $hxClasses["RectUtils"] = RectUtils;
 RectUtils.__name__ = ["RectUtils"];
@@ -25807,13 +25813,13 @@ var DataView = $global.DataView || js_html_compat_DataView;
 var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 Luxe.version = "dev";
 Luxe.build = "+666f123f39";
-Main.path_to_image_folder = "assets/oryx_16-bit_sci-fi/oryx_16bit_scifi_";
-Main.path_to_creatures_image = Main.path_to_image_folder + "creatures_trans.png";
-Main.path_to_interface_image = Main.path_to_image_folder + "interface_trans.png";
-Main.path_to_world_image = Main.path_to_image_folder + "world_trans.png";
-Main.path_to_world_extra_image = Main.path_to_image_folder + "world_extra_trans.png";
-Main.path_to_vehicles_image = Main.path_to_image_folder + "vehicles_trans.png";
-Main.path_to_items_image = Main.path_to_image_folder + "items_trans.png";
+Main.path_to_image_folder = "assets/images/";
+Main.path_to_creatures_image = Main.path_to_image_folder + "creatures.png";
+Main.path_to_interface_image = Main.path_to_image_folder + "interface.png";
+Main.path_to_world_image = Main.path_to_image_folder + "world.png";
+Main.path_to_world_extra_image = Main.path_to_image_folder + "world_extra.png";
+Main.path_to_vehicles_image = Main.path_to_image_folder + "vehicles.png";
+Main.path_to_items_image = Main.path_to_image_folder + "items.png";
 Main.path_to_rooms = "assets/rooms/";
 Main.path_to_entrance_room = Main.path_to_rooms + "entrance.tmx";
 Main.path_to_surface_room = Main.path_to_rooms + "surface.tmx";
