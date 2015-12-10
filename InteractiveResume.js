@@ -479,16 +479,16 @@ Main.prototype = $extend(luxe_Game.prototype,{
 			if(this.player.get_pos().y >= this.screenBounds.h) this.player.get_pos().set_y(this.screenBounds.h);
 			if(this.player.get_pos().x <= this.screenBounds.x) this.player.get_pos().set_x(this.screenBounds.x);
 			if(this.player.get_pos().x >= this.screenBounds.w) this.player.get_pos().set_x(this.screenBounds.w);
-			var p_bound = new phoenix_Rectangle(this.player.get_pos().x - this.player.size.x / 2,this.player.get_pos().y - this.player.size.y / 2,this.player.size.x,this.player.size.y);
-			this.roomCollisionCheck(p_bound,this.roomEntrance);
+			this.roomCollisionCheck(this.player,this.roomEntrance);
 			if(move_up || move_down || move_left || move_right) {
 				if(this.playerAnim.animation != "walk") this.playerAnim.set_animation("walk");
 			} else if(this.playerAnim.animation != "idle") this.playerAnim.set_animation("idle");
 		}
 	}
-	,roomCollisionCheck: function(p_bound,room) {
+	,roomCollisionCheck: function(player,room) {
+		var p_bound = new phoenix_Rectangle(player.get_pos().x - player.size.x / 2,player.get_pos().y - player.size.y / 2,player.size.x,player.size.y);
 		var _g = 0;
-		var _g1 = room.layer("fg").bounds_fitted();
+		var _g1 = room.room.layer("fg").bounds_fitted();
 		while(_g < _g1.length) {
 			var t_bound = _g1[_g];
 			++_g;
@@ -497,8 +497,30 @@ Main.prototype = $extend(luxe_Game.prototype,{
 				var dx = t_bound.x - p_bound.x;
 				var dy = t_bound.y - p_bound.y;
 				if(dx * dx / (t_bound.w * t_bound.w) > dy * dy / (t_bound.h * t_bound.h)) p_bound.set_x(p_bound.x > t_bound.x?t_bound.x + t_bound.w:t_bound.x - p_bound.w); else p_bound.set_y(p_bound.y > t_bound.y?t_bound.y + t_bound.h:t_bound.y - p_bound.h);
-				this.player.get_pos().set_x(p_bound.x + p_bound.w / 2);
-				this.player.get_pos().set_y(p_bound.y + p_bound.h / 2);
+				player.get_pos().set_x(p_bound.x + p_bound.w / 2);
+				player.get_pos().set_y(p_bound.y + p_bound.h / 2);
+			}
+		}
+		var _g2 = 0;
+		var _g11 = room.doors;
+		while(_g2 < _g11.length) {
+			var door = _g11[_g2];
+			++_g2;
+			door.set_uv(phoenix_Vector.Subtract(door.get_pos(),player.get_pos()).get_lengthsq() < this.doorProximity * this.doorProximity?this.doorOpenUV:this.doorClosedUV);
+		}
+		var _g3 = 0;
+		var _g12 = room.sprites;
+		while(_g3 < _g12.length) {
+			var sprite = _g12[_g3];
+			++_g3;
+			var s_bound = new phoenix_Rectangle(sprite.get_pos().x - sprite.size.x / 2,sprite.get_pos().y - sprite.size.y / 2,sprite.size.x,sprite.size.y);
+			if(s_bound.overlaps(p_bound)) {
+				var dx1 = s_bound.x - p_bound.x;
+				var dy1 = s_bound.y - p_bound.y;
+				if(dx1 * dx1 / (s_bound.w * s_bound.w) > dy1 * dy1 / (s_bound.h * s_bound.h)) p_bound.set_x(p_bound.x > s_bound.x?s_bound.x + s_bound.w:s_bound.x - p_bound.w); else p_bound.set_y(p_bound.y > s_bound.y?s_bound.y + s_bound.h:s_bound.y - p_bound.h);
+				player.get_pos().set_x(p_bound.x + p_bound.w / 2);
+				player.get_pos().set_y(p_bound.y + p_bound.h / 2);
+				haxe_Log.trace(sprite.get_name(),{ fileName : "Main.hx", lineNumber : 162, className : "Main", methodName : "roomCollisionCheck"});
 			}
 		}
 	}
@@ -509,9 +531,7 @@ Main.prototype = $extend(luxe_Game.prototype,{
 		image.set_filter_min(image.set_filter_mag(9728));
 		var speed_mod = 3;
 		this.playerMoveSpeed = this.imageSize * speed_mod;
-		var x = 0 * this.imageSize;
-		var y = 25 * this.imageSize;
-		this.player = new luxe_Sprite({ name : "player", texture : image, uv : new phoenix_Rectangle(x,y,this.imageSize,this.imageSize), pos : new phoenix_Vector(6 * this.imageSize + this.imageSize / 2,7 * this.imageSize + this.imageSize / 2), size : new phoenix_Vector(this.imageSize,this.imageSize), batcher : this.batcher, depth : 5});
+		this.player = new luxe_Sprite({ name : "player", texture : image, uv : new phoenix_Rectangle(0 * this.imageSize,25 * this.imageSize,this.imageSize,this.imageSize), pos : new phoenix_Vector(6 * this.imageSize + this.imageSize / 2,7 * this.imageSize + this.imageSize / 2), size : new phoenix_Vector(this.imageSize,this.imageSize), batcher : this.batcher, depth : 5});
 		this.screenBounds.set_x(this.imageSize / 2);
 		this.screenBounds.set_w(Luxe.core.screen.get_w() - this.imageSize / 2);
 		this.screenBounds.set_y(this.imageSize / 2);
@@ -523,52 +543,32 @@ Main.prototype = $extend(luxe_Game.prototype,{
 		this.playerAnim.play();
 		this.connectInput();
 	}
-	,createDoor: function(t,n,b,x,y) {
-		return new luxe_Sprite({ name : n, texture : t, uv : new phoenix_Rectangle(Math.floor(x),Math.floor(y),this.imageSize,this.imageSize), size : new phoenix_Vector(this.imageSize,this.imageSize), batcher : b, depth : 5});
+	,createDoor: function(t,n,b,image_size,p) {
+		return new luxe_Sprite({ name : n, texture : t, pos : ((function($this) {
+			var $r;
+			p.set_xyz(p.x * image_size,p.y * image_size,p.z * image_size);
+			$r = p;
+			return $r;
+		}(this))).addScalar(image_size / 2), size : new phoenix_Vector(image_size,image_size), batcher : b, depth : 3});
+	}
+	,createInfoSmall: function(t,n,b,image_size,x,y,u,v) {
+		return new luxe_Sprite({ name : n, texture : t, pos : new phoenix_Vector(x * image_size + image_size / 2,y * image_size + image_size / 2), uv : new phoenix_Rectangle(u * image_size,v * image_size,image_size,image_size), size : new phoenix_Vector(image_size,image_size), batcher : b, depth : 3});
+	}
+	,createInfoLarge: function(t,n,b,image_size,x,y,u,v) {
+		return null;
 	}
 	,generateRooms: function() {
 		var world_texture = Luxe.resources.cache.get(Main.path_to_world_image);
 		world_texture.set_filter_min(world_texture.set_filter_mag(9728));
 		var num_world_tiles = 35;
-		this.roomEntrance = this.createRoom(world_texture,[[14,9,9,52,9,10,0,8,9,9,9,9,15],[12,0,0,0,0,0,0,0,0,0,0,0,12],[12,0,0,0,0,0,0,0,0,0,0,0,12],[13,0,0,0,0,0,0,0,0,0,0,0,13],[0,0,0,0,0,0,0,0,0,0,0,0,0],[11,0,0,0,0,0,0,0,0,0,0,0,11],[12,0,0,0,0,0,0,0,0,0,0,0,12],[12,0,0,0,0,0,0,0,0,0,0,0,12],[16,9,9,9,9,9,9,9,9,51,9,9,17]],[[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,37,37,37,37,37,1,1,1,1],[1,1,1,1,37,3,3,3,37,1,1,1,1],[1,1,1,1,37,3,115,3,37,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1]]);
-		var door = this.createDoor(world_texture,"planetarium",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door1 = this.createDoor(world_texture,"gallery",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door2 = this.createDoor(world_texture,"surface",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door3 = this.createDoor(world_texture,"help",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		this.roomSurface = this.createRoom(world_texture,[[12,0,0,0,0,0,0,136,0,0,0,0,0],[12,0,136,0,0,0,137,0,0,0,0,0,0],[12,0,0,0,0,0,0,0,0,0,0,0,0],[13,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[11,166,0,0,0,0,0,0,0,0,0,0,0],[12,166,166,0,0,0,0,0,0,0,0,0,0],[12,166,166,138,0,0,0,0,0,137,138,0,0],[12,0,136,0,0,0,0,0,0,0,0,0,0]],[[1019,1019,1019,1019,1019,1019,1017,1019,1019,1019,1019,1016,1019],[1019,1017,1019,1019,1019,1019,1017,1016,1019,1019,1017,1019,1019],[1019,1017,1016,1019,1019,1019,1019,1016,1019,1019,1019,1017,1019],[1019,1019,1017,1019,1019,1018,1019,1019,1019,1019,1019,1019,1019],[1019,1019,1019,1016,1019,1019,1019,1019,1017,1019,1019,1019,1019],[1019,1019,1019,1019,1019,1019,1019,1016,1017,1019,1019,1019,1017],[1019,1019,1019,1019,1017,1019,1019,1019,1019,1019,1019,1016,1018],[1019,1019,1017,1016,1017,1019,1019,1019,1019,1019,1019,1018,1017],[1019,1019,1019,1019,1019,1019,1017,1016,1017,1019,1019,1017,1019]]);
-		var door4 = this.createDoor(world_texture,"entrance",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door5 = this.createDoor(world_texture,"ai_demo",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door6 = this.createDoor(world_texture,"game_tools",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door7 = this.createDoor(world_texture,"space_game",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		this.roomPlanetarium = this.createRoom(world_texture,[[0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[434,479,0,478,0,480,0,480,0,480,0,429,435],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[436,429,429,429,429,430,0,428,429,429,429,429,437]],[[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[421,421,421,421,421,421,421,421,421,421,421,421,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,421,421,421,421,421,421,421,421,421,421,421,421]]);
-		var door8 = this.createDoor(world_texture,"unfinished",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door9 = this.createDoor(world_texture,"unknown",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door10 = this.createDoor(world_texture,"istation",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door11 = this.createDoor(world_texture,"brakebill",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door12 = this.createDoor(world_texture,"balfour_beatty",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door13 = this.createDoor(world_texture,"entrance",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		this.roomGallery = this.createRoom(world_texture,[[224,269,219,268,219,270,219,270,219,270,219,219,225],[222,0,0,0,0,0,0,0,0,0,0,0,222],[256,0,0,0,0,0,0,0,0,0,0,0,222],[222,0,0,0,0,0,0,0,0,0,0,0,223],[256,0,0,0,0,0,0,0,0,0,0,0,0],[222,0,0,0,0,0,0,0,0,0,0,0,221],[256,0,0,0,0,0,0,0,0,0,0,0,222],[222,0,0,0,0,0,0,0,0,0,0,0,222],[226,219,219,270,219,270,219,270,219,270,219,270,227]],[[211,211,211,211,211,211,211,211,211,211,211,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,211,211,211,211,211,211,211,211,211,211,211]]);
-		var door14 = this.createDoor(world_texture,"broken",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door15 = this.createDoor(world_texture,"filled_1",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door16 = this.createDoor(world_texture,"filled_2",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door17 = this.createDoor(world_texture,"empty_1",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door18 = this.createDoor(world_texture,"empty_2",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door19 = this.createDoor(world_texture,"filled_3",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door20 = this.createDoor(world_texture,"filled_4",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door21 = this.createDoor(world_texture,"empty_3",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door22 = this.createDoor(world_texture,"empty_4",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door23 = this.createDoor(world_texture,"empty_5",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		var door24 = this.createDoor(world_texture,"entrance",this.batcher,92 % num_world_tiles * this.imageSize,92 / num_world_tiles * this.imageSize);
-		this.roomEntrance.display({ scale : 1, batcher : this.batcher, depth : 2});
-	}
-	,createRoom: function(world_texture,fg_tiles,bg_tiles) {
-		var room_tilemap = new luxe_tilemaps_Tilemap({ w : 13, h : 9, tile_width : this.imageSize, tile_height : this.imageSize, orientation : luxe_tilemaps_TilemapOrientation.ortho});
-		room_tilemap.add_tileset({ name : "tiles", texture : world_texture, tile_width : this.imageSize, tile_height : this.imageSize});
-		room_tilemap.add_layer({ name : "fg", layer : 1});
-		room_tilemap.add_layer({ name : "bg", layer : 0});
-		room_tilemap.add_tiles_from_grid("fg",fg_tiles);
-		room_tilemap.add_tiles_from_grid("bg",bg_tiles);
-		return room_tilemap;
+		this.doorClosedUV = new phoenix_Rectangle(92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize,this.imageSize,this.imageSize);
+		this.doorOpenUV = new phoenix_Rectangle(91 % num_world_tiles * this.imageSize,Math.floor(91 / num_world_tiles) * this.imageSize,this.imageSize,this.imageSize);
+		this.doorProximity = 2 * this.imageSize;
+		this.roomEntrance = new Room(world_texture,this.imageSize,[[14,9,9,52,9,10,0,8,9,9,9,9,15],[12,0,0,0,0,0,0,0,0,0,0,0,12],[12,0,0,0,0,0,0,0,0,0,0,0,12],[13,0,0,0,0,0,0,0,0,0,0,0,13],[0,0,0,0,0,0,0,0,0,0,0,0,0],[11,0,0,0,0,0,0,0,0,0,0,0,11],[12,0,0,0,0,0,0,0,0,0,0,0,12],[12,0,0,0,0,0,0,0,0,0,0,0,12],[16,9,9,9,9,9,9,9,9,51,9,9,17]],[[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,37,37,37,37,37,1,1,1,1],[1,1,1,1,37,3,3,3,37,1,1,1,1],[1,1,1,1,37,3,115,3,37,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1]],[this.createDoor(world_texture,"entrance_to_planetarium",this.batcher,this.imageSize,new phoenix_Vector(6,0)),this.createDoor(world_texture,"entrance_to_gallery",this.batcher,this.imageSize,new phoenix_Vector(0,4)),this.createDoor(world_texture,"entrance_to_surface",this.batcher,this.imageSize,new phoenix_Vector(12,4))],[this.createInfoSmall(world_texture,"help",this.batcher,this.imageSize,6,4,178 % num_world_tiles,Math.floor(178 / num_world_tiles))]);
+		this.roomEntrance.display(this.batcher);
+		this.roomSurface = new Room(world_texture,this.imageSize,[[12,0,0,0,0,0,0,136,0,0,0,0,0],[12,0,136,0,0,0,137,0,0,0,0,0,0],[12,0,0,0,0,0,0,0,0,0,0,0,0],[13,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[11,166,0,0,0,0,0,0,0,0,0,0,0],[12,166,166,0,0,0,0,0,0,0,0,0,0],[12,166,166,138,0,0,0,0,0,137,138,0,0],[12,0,136,0,0,0,0,0,0,0,0,0,0]],[[1019,1019,1019,1019,1019,1019,1017,1019,1019,1019,1019,1016,1019],[1019,1017,1019,1019,1019,1019,1017,1016,1019,1019,1017,1019,1019],[1019,1017,1016,1019,1019,1019,1019,1016,1019,1019,1019,1017,1019],[1019,1019,1017,1019,1019,1018,1019,1019,1019,1019,1019,1019,1019],[1019,1019,1019,1016,1019,1019,1019,1019,1017,1019,1019,1019,1019],[1019,1019,1019,1019,1019,1019,1019,1016,1017,1019,1019,1019,1017],[1019,1019,1019,1019,1017,1019,1019,1019,1019,1019,1019,1016,1018],[1019,1019,1017,1016,1017,1019,1019,1019,1019,1019,1019,1018,1017],[1019,1019,1019,1019,1019,1019,1017,1016,1017,1019,1019,1017,1019]],[this.createDoor(world_texture,"surface_to_entrance",this.batcher,this.imageSize,new phoenix_Vector(0,0))],[this.createInfoSmall(world_texture,"ai_demo",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"game_tools",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"space_game",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize)]);
+		this.roomPlanetarium = new Room(world_texture,this.imageSize,[[0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0],[434,479,0,478,0,480,0,480,0,480,0,429,435],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[432,0,0,0,0,0,0,0,0,0,0,0,432],[436,429,429,429,429,430,0,428,429,429,429,429,437]],[[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156,1156],[421,421,421,421,421,421,421,421,421,421,421,421,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,526,421,526,421,526,421,526,421,526,421,526,421],[421,421,421,421,421,421,421,421,421,421,421,421,421]],[this.createDoor(world_texture,"planetarium_to_entrance",this.batcher,this.imageSize,new phoenix_Vector(0,0))],[this.createInfoSmall(world_texture,"unfinished",this.batcher,this.imageSize,0,0,516 % num_world_tiles * this.imageSize,Math.floor(516 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"unknown",this.batcher,this.imageSize,0,0,516 % num_world_tiles * this.imageSize,Math.floor(516 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"istation",this.batcher,this.imageSize,0,0,516 % num_world_tiles * this.imageSize,Math.floor(516 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"brakebill",this.batcher,this.imageSize,0,0,516 % num_world_tiles * this.imageSize,Math.floor(516 / num_world_tiles) * this.imageSize),this.createInfoSmall(world_texture,"balfour_beatty",this.batcher,this.imageSize,0,0,516 % num_world_tiles * this.imageSize,Math.floor(516 / num_world_tiles) * this.imageSize)]);
+		this.roomGallery = new Room(world_texture,this.imageSize,[[224,269,219,268,219,270,219,270,219,270,219,219,225],[222,0,0,0,0,0,0,0,0,0,0,0,222],[256,0,0,0,0,0,0,0,0,0,0,0,222],[222,0,0,0,0,0,0,0,0,0,0,0,223],[256,0,0,0,0,0,0,0,0,0,0,0,0],[222,0,0,0,0,0,0,0,0,0,0,0,221],[256,0,0,0,0,0,0,0,0,0,0,0,222],[222,0,0,0,0,0,0,0,0,0,0,0,222],[226,219,219,270,219,270,219,270,219,270,219,270,227]],[[211,211,211,211,211,211,211,211,211,211,211,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,316,211,316,211,316,211,316,211,316,211,211],[211,316,211,316,211,316,211,316,211,316,211,316,211],[211,211,211,211,211,211,211,211,211,211,211,211,211]],[this.createDoor(world_texture,"gallery_to_entrance",this.batcher,this.imageSize,new phoenix_Vector(0,0))],[this.createInfoLarge(world_texture,"broken",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"filled_1",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"filled_2",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"empty_1",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"empty_2",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"filled_3",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"filled_4",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"empty_3",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"empty_4",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize),this.createInfoLarge(world_texture,"empty_5",this.batcher,this.imageSize,0,0,92 % num_world_tiles * this.imageSize,Math.floor(92 / num_world_tiles) * this.imageSize)]);
 	}
 	,connectInput: function() {
 		Luxe.input.bind_key("up",snow_system_input_Keycodes.up);
@@ -582,11 +582,24 @@ Main.prototype = $extend(luxe_Game.prototype,{
 	}
 	,__class__: Main
 });
-var Room = function() { };
+var Room = function(world_texture,image_size,fg_tiles,bg_tiles,door_array,sprite_array) {
+	var room_tilemap = new luxe_tilemaps_Tilemap({ w : 13, h : 9, tile_width : image_size, tile_height : image_size, orientation : luxe_tilemaps_TilemapOrientation.ortho});
+	room_tilemap.add_tileset({ name : "tiles", texture : world_texture, tile_width : image_size, tile_height : image_size});
+	room_tilemap.add_layer({ name : "fg", layer : 1});
+	room_tilemap.add_layer({ name : "bg", layer : 0});
+	room_tilemap.add_tiles_from_grid("fg",fg_tiles);
+	room_tilemap.add_tiles_from_grid("bg",bg_tiles);
+	this.room = room_tilemap;
+	this.doors = door_array;
+	this.sprites = sprite_array;
+};
 $hxClasses["Room"] = Room;
 Room.__name__ = ["Room"];
 Room.prototype = {
-	__class__: Room
+	display: function(batcher) {
+		this.room.display({ scale : 1, depth : 2, batcher : batcher});
+	}
+	,__class__: Room
 };
 var RectUtils = function() { };
 $hxClasses["RectUtils"] = RectUtils;
@@ -25825,8 +25838,13 @@ Main.path_to_entrance_room = Main.path_to_rooms + "entrance.tmx";
 Main.path_to_surface_room = Main.path_to_rooms + "surface.tmx";
 Main.path_to_gallery_room = Main.path_to_rooms + "gallery.tmx";
 Main.path_to_planetarium_room = Main.path_to_rooms + "planetarium.tmx";
+Main.TILE_DOOR_OPEN_GREY = 91;
+Main.TILE_DOOR_CLOSED_GREY = 92;
+Main.TILE_DESK_GREY = 178;
+Main.TILE_TERM_BLUE_2 = 516;
 GlobalVars.ROOM_DEPTH = 2;
-GlobalVars.PLAY_DEPTH = 5;
+GlobalVars.ITEM_DEPTH = 3;
+GlobalVars.PLAYER_DEPTH = 5;
 GlobalVars.DEBUG_DEPTH = 10;
 Xml.Element = 0;
 Xml.PCData = 1;
